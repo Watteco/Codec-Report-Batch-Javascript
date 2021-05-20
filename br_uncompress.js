@@ -1,40 +1,41 @@
 /*
  * JavaScript implementation of brUncompress.
+ * for NodeRed
  */
 
 // {{{ Constants
 
-var ST_UNDEF = 0
-var ST_BL = 1
-var ST_U4 = 2
-var ST_I4 = 3
-var ST_U8 = 4
-var ST_I8 = 5
-var ST_U16 = 6
-var ST_I16 = 7
-var ST_U24 = 8
-var ST_I24 = 9
-var ST_U32 = 10
-var ST_I32 = 11
-var ST_FL = 12
+var ST_UNDEF = 0;   
+var ST_BL = 1;
+var ST_U4 = 2;
+var ST_I4 = 3;
+var ST_U8 = 4;
+var ST_I8 = 5;
+var ST_U16 = 6;
+var ST_I16 = 7;
+var ST_U24 = 8;
+var ST_I24 = 9;
+var ST_U32 = 10;
+var ST_I32 = 11;
+var ST_FL = 12;
 
-var ST = {}
-ST[ST_UNDEF] = 0
-ST[ST_BL] = 1
-ST[ST_U4] = 4
-ST[ST_I4] = 4
-ST[ST_U8] = 8
-ST[ST_I8] = 8
-ST[ST_U16] = 16
-ST[ST_I16] = 16
-ST[ST_U24] = 24
-ST[ST_I24] = 24
-ST[ST_U32] = 32
-ST[ST_I32] = 32
-ST[ST_FL] = 32
+var ST = {};
+ST[ST_UNDEF] = 0;
+ST[ST_BL] = 1;
+ST[ST_U4] = 4;
+ST[ST_I4] = 4;
+ST[ST_U8] = 8;
+ST[ST_I8] = 8;
+ST[ST_U16] = 16;
+ST[ST_I16] = 16;
+ST[ST_U24] = 24;
+ST[ST_I24] = 24;
+ST[ST_U32] = 32;
+ST[ST_I32] = 32;
+ST[ST_FL] = 32;
 
-var BR_HUFF_MAX_INDEX_TABLE = 14
-var NUMBER_OF_SERIES = 16
+var BR_HUFF_MAX_INDEX_TABLE = 14;
+var NUMBER_OF_SERIES = 16;
 
 var HUFF = [
   [
@@ -91,7 +92,7 @@ var HUFF = [
     { sz: 11, lbl: 0x406 },
     { sz: 11, lbl: 0x407 }
   ]
-]
+];
 
 // }}}
 
@@ -100,29 +101,29 @@ Math.trunc =
   Math.trunc ||
   function(x) {
     if (isNaN(x)) {
-      return NaN
+      return NaN;
     }
     if (x > 0) {
-      return Math.floor(x)
+      return Math.floor(x);
     }
-    return Math.ceil(x)
-  }
+    return Math.ceil(x);
+  };
 // }}}
 
 /**
  * brUncompress main function
  */
 function brUncompress(tagsz, argList, hexString, batch_absolute_timestamp) {
-  var out = initResult()
-  var buffer = createBuffer(parseHexString(hexString))
-  var flag = generateFlag(buffer.getNextSample(ST_U8))
+  var out = initResult();
+  var buffer = createBuffer(parseHexString(hexString));
+  var flag = generateFlag(buffer.getNextSample(ST_U8));
 
-  out.batch_counter = buffer.getNextSample(ST_U8, 3)
-  buffer.getNextSample(ST_U8, 1)
+  out.batch_counter = buffer.getNextSample(ST_U8, 3);
+  buffer.getNextSample(ST_U8, 1);
 
-  var temp = prePopulateOutput(out, buffer, argList, flag, tagsz)
-  var last_timestamp = temp.last_timestamp
-  var index_of_the_first_sample = temp.index_of_the_first_sample
+  var temp = prePopulateOutput(out, buffer, argList, flag, tagsz);
+  var last_timestamp = temp.last_timestamp;
+  var index_of_the_first_sample = temp.index_of_the_first_sample;
 
   if (flag.hasSample) {
     last_timestamp = uncompressSamplesData(
@@ -133,14 +134,14 @@ function brUncompress(tagsz, argList, hexString, batch_absolute_timestamp) {
       last_timestamp,
       flag,
       tagsz
-    )
+    );
   }
 
   out.batch_relative_timestamp = extractTimestampFromBuffer(
     buffer,
     last_timestamp
-  )
-  return adaptToExpectedFormat(out, argList, batch_absolute_timestamp)
+  );
+  return adaptToExpectedFormat(out, argList, batch_absolute_timestamp);
 }
 
 /////////////// Sub functions ///////////////
@@ -150,21 +151,21 @@ function brUncompress(tagsz, argList, hexString, batch_absolute_timestamp) {
  */
 function initResult() {
   var series = [],
-    i = 0
+    i = 0;
   while (i < NUMBER_OF_SERIES) {
     series.push({
       codingType: 0,
       codingTable: 0,
       resolution: null,
       uncompressSamples: []
-    })
-    i += 1
+    });
+    i += 1;
   }
   return {
     batch_counter: 0,
     batch_relative_timestamp: 0,
     series: series
-  }
+  };
 }
 
 /**
@@ -176,55 +177,55 @@ function createBuffer(byteArray) {
    * Retrieve the pattern for HUFF table lookup
    */
   function bitsBuf2HuffPattern(byteArray, index, nb_bits) {
-    var sourceBitStart = index
-    var sz = nb_bits - 1
+    var sourceBitStart = index;
+    var sz = nb_bits - 1;
     if (byteArray.length * 8 < sourceBitStart + nb_bits) {
-      throw "Verify that dest buf is large enough"
+      throw "Verify that dest buf is large enough";
     }
-    var bittoread = 0
-    var pattern = 0
+    var bittoread = 0;
+    var pattern = 0;
     while (nb_bits > 0) {
       if (byteArray[sourceBitStart >> 3] & (1 << (sourceBitStart & 0x07))) {
-        pattern |= 1 << (sz - bittoread)
+        pattern |= 1 << (sz - bittoread);
       }
-      nb_bits--
-      bittoread++
-      sourceBitStart++
+      nb_bits--;
+      bittoread++;
+      sourceBitStart++;
     }
-    return pattern
+    return pattern;
   }
 
   return {
     index: 0,
     byteArray: byteArray,
     getNextSample: function(sampleType, nbBitsInput) {
-      var nbBits = nbBitsInput || ST[sampleType]
-      var sourceBitStart = this.index
-      this.index += nbBits
+      var nbBits = nbBitsInput || ST[sampleType];
+      var sourceBitStart = this.index;
+      this.index += nbBits;
       if (sampleType === ST_FL && nbBits !== 32) {
-        throw "Mauvais sampletype"
+        throw "Mauvais sampletype";
       }
 
-      var u32 = 0
-      var nbytes = Math.trunc((nbBits - 1) / 8) + 1
-      var nbitsfrombyte = nbBits % 8
+      var u32 = 0;
+      var nbytes = Math.trunc((nbBits - 1) / 8) + 1;
+      var nbitsfrombyte = nbBits % 8;
       if (nbitsfrombyte === 0 && nbytes > 0) {
-        nbitsfrombyte = 8
+        nbitsfrombyte = 8;
       }
 
       while (nbytes > 0) {
-        var bittoread = 0
+        var bittoread = 0;
         while (nbitsfrombyte > 0) {
-          var idx = sourceBitStart >> 3
+          var idx = sourceBitStart >> 3;
           if (this.byteArray[idx] & (1 << (sourceBitStart & 0x07))) {
-            u32 |= 1 << ((nbytes - 1) * 8 + bittoread)
+            u32 |= 1 << ((nbytes - 1) * 8 + bittoread);
           }
-          nbitsfrombyte--
-          bittoread++
-          sourceBitStart += 1
+          nbitsfrombyte--;
+          bittoread++;
+          sourceBitStart += 1;
         }
-        nbytes--
-        nbitsfrombyte = 8
+        nbytes--;
+        nbitsfrombyte = 8;
       }
       // Propagate the sign bit if 1
       if (
@@ -232,12 +233,12 @@ function createBuffer(byteArray) {
         u32 & (1 << (nbBits - 1))
       ) {
         for (var i = nbBits; i < 32; i++) {
-          u32 |= 1 << i
-          nbBits++
+          u32 |= 1 << i;
+          nbBits++;
         }
       }
 
-      return u32
+      return u32;
     },
 
     /**
@@ -245,14 +246,14 @@ function createBuffer(byteArray) {
      */
     getNextBifromHi: function(huff_coding) {
       for (var i = 2; i < 12; i++) {
-        var lhuff = bitsBuf2HuffPattern(this.byteArray, this.index, i)
+        var lhuff = bitsBuf2HuffPattern(this.byteArray, this.index, i);
         for (var j = 0; j < HUFF[huff_coding].length; j++) {
           if (
             HUFF[huff_coding][j].sz == i &&
             lhuff == HUFF[huff_coding][j].lbl
           ) {
-            this.index += i
-            return j
+            this.index += i;
+            return j;
           }
         }
       }
@@ -312,7 +313,7 @@ function prePopulateOutput(out, buffer, argList, flag, tagsz) {
     }
     var sampleIndex = findIndexFromArgList(argList, tag)
 
-    if (i == 0) {
+    if (i === 0) {
       index_of_the_first_sample = sampleIndex
     }
 
@@ -419,7 +420,7 @@ function bytes2Float32(bytes) {
   }
 
   if (exponent == -127) {
-    if (significand == 0) {
+    if (significand === 0) {
       return sign * 0.0
     }
     exponent = -126
@@ -554,7 +555,7 @@ function initTimestampCommonTable(
     //delta timestamp
     var bi = buffer.getNextBifromHi(timestampCoding)
     if (bi <= BR_HUFF_MAX_INDEX_TABLE) {
-      if (i == 0) {
+      if (i === 0) {
         timestampCommon.push(
           out.series[firstSampleIndex].uncompressSamples[0]
             .data_relative_timestamp
@@ -733,7 +734,55 @@ function computeDataAbsoluteTimestamp(bat, brt, drt) {
 try {
   module.exports = brUncompress
 } catch (e) {
-  // when called from nashorn,  module.exports is unavailable…
+  // when called from nashorn,  module.exports is unavailableâ€¦
 }
 
 // vim: fdm=marker
+
+
+var time = new Date().toLocaleString(); //current time in right time format
+
+var data = brUncompress(
+	3,  // <<==  the Batch Tag size
+	// From here the batch fileds parameter list
+	[
+		{
+			 taglbl: 1,
+			 resol: 10,
+			 sampletype: 7,
+			 divide: 100,
+			 lblname: "Temperature"
+		},
+		{ 
+			 taglbl: 2,
+			 resol: 100,
+			 sampletype: 6,
+			 divide: 100,
+			 lblname: "Humidity"
+		},
+		{ 
+			 taglbl: 3,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "CO2"
+		},
+		{ 
+			 taglbl: 4,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "COV"
+		},
+		{ 
+			 taglbl: 5,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "Lux"
+		}
+	],
+	msg.payload, // This is the batch frame
+	time // Variable fÃ¼r aktuelle Zeit
+ )
+;
+msg = {payload:data};
+
+return msg;
