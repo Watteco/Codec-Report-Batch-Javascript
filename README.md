@@ -1,7 +1,7 @@
 ENGLISH
 ===========================
 Implementation of the executable `br_uncompress` in JavaScript.
-
+sqdsdds
 ## Use
 
 The use cases are given in the files ** example.html ** (on your browser) and ** example.js ** (on nodejs).
