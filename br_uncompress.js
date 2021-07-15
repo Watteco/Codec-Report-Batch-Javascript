@@ -4,7 +4,7 @@
  */
 
 // {{{ Constants
-
+je casse le code
 var ST_UNDEF = 0;   
 var ST_BL = 1;
 var ST_U4 = 2;
