@@ -31,7 +31,53 @@ An example is given in the package.json file.
 The `br_uncompress.js` script can be used directly via Nashorn. To see the
 file `example_nashorn.js`
 
+### Compatible devices
 
+The `br_uncompress.js` script is currently compatible with VAQAO, to make it compatible with other devices you have to change line 745 :
+
+```js
+var data = brUncompress(
+	3,  // <<==  the Batch Tag size
+	// From here the batch fileds parameter list
+	[
+		{
+			 taglbl: 1,
+			 resol: 10,
+			 sampletype: 7,
+			 divide: 100,
+			 lblname: "Temperature"
+		},
+		{ 
+			 taglbl: 2,
+			 resol: 100,
+			 sampletype: 6,
+			 divide: 100,
+			 lblname: "Humidity"
+		},
+		{ 
+			 taglbl: 3,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "CO2"
+		},
+		{ 
+			 taglbl: 4,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "COV"
+		},
+		{ 
+			 taglbl: 5,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "Lux"
+		}
+	],
+	msg.payload, // This is the batch frame
+	time // Variable for timestamp
+ )
+;
+```
 
 [1]: https://nodejs.org/en/ "NodeJs"
 
@@ -70,5 +116,52 @@ Un exemple est donné dans le fichier package.json.
 Le script `br_uncompress.js` est utilisable directement via Nashorn. Voir le
 fichier `example_nashorn.js`
 
+### Capteurs compatibles
+
+Le script `br_uncompress.js` est actuellement compatible avec le VAQAO, pour le rendre compatible avec d'autres capteurs il faut modifier la ligne 745 :
+
+```js
+var data = brUncompress(
+	3,  // <<==  the Batch Tag size
+	// From here the batch fileds parameter list
+	[
+		{
+			 taglbl: 1,
+			 resol: 10,
+			 sampletype: 7,
+			 divide: 100,
+			 lblname: "Temperature"
+		},
+		{ 
+			 taglbl: 2,
+			 resol: 100,
+			 sampletype: 6,
+			 divide: 100,
+			 lblname: "Humidity"
+		},
+		{ 
+			 taglbl: 3,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "CO2"
+		},
+		{ 
+			 taglbl: 4,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "COV"
+		},
+		{ 
+			 taglbl: 5,
+			 resol: 10,
+			 sampletype: 6,
+			 lblname: "Lux"
+		}
+	],
+	msg.payload, // This is the batch frame
+	time // Variable for timestamp
+ )
+;
+```
 
 [1]: https://nodejs.org/en/ "NodeJs"  
